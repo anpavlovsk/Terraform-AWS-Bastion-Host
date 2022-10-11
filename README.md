@@ -195,10 +195,50 @@ The SSH config file is a great resource for storing all your configuration for t
 IdentityFile ~/Terraform-AWS-Bastion-Host/terraform/keys/mykeypair
 
 Host bastion-instance
-   HostName 34.248.244.4
+   HostName 52.213.245.171
    User ubuntu
 Host private-instance
-   HostName 10.0.0.23
+   HostName 10.0.0.24
    User ubuntu
    ProxyCommand ssh -q -W %h:%p bastion-instance
 ```
+Output 
+````
+alp@master1:~/Terraform-AWS-Bastion-Host/terraform$ ssh private-instance
+The authenticity of host '52.213.245.171 (52.213.245.171)' can't be established.
+ECDSA key fingerprint is SHA256:bU7Cw8G0oZvqC3Vgq9+LwpJxLaw4pLDbFboovXTWhgE.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+The authenticity of host '10.0.0.24 (<no hostip for proxy command>)' can't be established.
+ECDSA key fingerprint is SHA256:qgmeZQ/Uq7mIyNfo/80gmu0wHe1m1RyGJU9lW431G08.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '10.0.0.24' (ECDSA) to the list of known hosts.
+Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 5.3.0-1017-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  System information as of Tue Oct 11 10:00:03 UTC 2022
+
+  System load:  0.08              Processes:           90
+  Usage of /:   13.8% of 7.69GB   Users logged in:     0
+  Memory usage: 17%               IP address for eth0: 10.0.0.24
+  Swap usage:   0%
+
+0 packages can be updated.
+0 updates are security updates.
+
+
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+ubuntu@ip-10-0-0-24:~$
+````
