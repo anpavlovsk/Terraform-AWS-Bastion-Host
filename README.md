@@ -240,5 +240,15 @@ applicable law.
 To run a command as administrator (user "root"), use "sudo <command>".
 See "man sudo_root" for details.
 
-ubuntu@ip-10-0-0-24:~$
+ubuntu@ip-10-0-0-24:~$ ip a | grep global
+    inet 10.0.0.24/28 brd 10.0.0.31 scope global dynamic eth0
+ubuntu@ip-10-0-0-24:~$ ping -c 3 google.com
+PING google.com (74.125.193.138) 56(84) bytes of data.
+64 bytes from ig-in-f138.1e100.net (74.125.193.138): icmp_seq=1 ttl=47 time=11.8 ms
+64 bytes from ig-in-f138.1e100.net (74.125.193.138): icmp_seq=2 ttl=47 time=11.4 ms
+64 bytes from ig-in-f138.1e100.net (74.125.193.138): icmp_seq=3 ttl=47 time=11.4 ms
+
+--- google.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 11.438/11.601/11.876/0.195 ms
 ````
