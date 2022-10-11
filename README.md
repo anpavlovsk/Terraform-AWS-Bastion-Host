@@ -18,7 +18,7 @@ ssh-keygen -f mykeypair
 ## Infrastructure
 The infrastructure below has been deployed using Terraform
 
-Image here
+![alt text](https://github.com/anpavlovsk/Terraform-AWS-Bastion-Host/blob/main/screenshots/awsbastionhostssh.png?raw=true) 
 
 ## VPC: 
 ````
@@ -184,7 +184,9 @@ terraform init
 terraform apply
 ````
 If the deployment has been successful, you’ll be able to see two new EC-2 instances in your AWS console.
-Image here
+![alt text](https://github.com/anpavlovsk/Terraform-AWS-Bastion-Host/blob/main/screenshots/awsbastionhostspublic.png?raw=true) 
+![alt text](https://github.com/anpavlovsk/Terraform-AWS-Bastion-Host/blob/main/screenshots/awsbastionhostsprivate.png?raw=true) 
+
 
 The SSH config file
 The SSH config file is a great resource for storing all your configuration for the remote machines you connect to. It is located in your home directory here: .ssh/config. The config file isn’t automatically created, so if it doesn’t exist you will have to create it.
