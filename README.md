@@ -21,23 +21,161 @@ The infrastructure below has been deployed using Terraform
 Image here
 
 ## VPC: 
+````
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/27"
+}
+````
 
-## Subnets: 
-## Subnets: 
+## Subnets:
+````
+resource "aws_subnet" "public-subnet" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.0.0/28"
+  map_public_ip_on_launch = "true"
+  availability_zone       = "eu-west-1a"
 
+  tags = {
+    Name = "public-subnet"
+  }
+}
+
+resource "aws_subnet" "private-subnet" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.0.16/28"
+  map_public_ip_on_launch = "false"
+  availability_zone       = "eu-west-1a"
+
+  tags = {
+    Name = "private-subnet"
+  }
+}
+```` 
 The key differentiator between a private and public subnet is the map_public_ip_on_launch flag, if this is True, instances launched in this subnet will have a public IP address and be accessible via the internet gateway.
 
 ## Internet Gateway: 
+````
+resource "aws_internet_gateway" "internet-gw" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "internet-gw"
+  }
+}
+````
 
 For a subnet to be accessible to the internet an AWS internet gateway is required. An internet gateway allows internet traffic to and from your VPC.
 
-Route table: A Route table specifies which external IP address are contactable from a subnet or internet gateway.
+## Route table: 
+````
+resource "aws_route_table" "public-rt" {
+  vpc_id = aws_vpc.main.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.internet-gw.id
+  }
+}
 
-Nat Gateway: A Nat Gateway enables instances in private subnets to connect to the internet. The Nat gateway must be deployed in the public subnet with an Elastic IP. Once the resource is created, a route table associated with the the private subnet needs to point internet-bound traffic to the NAT gateway.
+resource "aws_route_table_association" "public-rta" {
+  subnet_id      = aws_subnet.public-subnet.id
+  route_table_id = aws_route_table.public-rt.id
+}
+Footer
 
-Security Groups: A security group acts as a virtual firewall for your instance to control incoming and outgoing traffic. The security group below enables all traffic over port 22 (SSH). Both instances in the private and public subnet require this security group.
+````
+A Route table specifies which external IP address are contactable from a subnet or internet gateway.
 
-Ec2 Instances and Keys: After all the necessary infrastructure has been defined, we can set up our Ec2 instances. The instances require an AWS key-pair to authenticate access which is created below using the aws_key_pair resource and existing ssh key created earlier.
+## Nat Gateway: 
+````
+resource "aws_eip" "nat" {
+  vpc = true
+}
+
+resource "aws_nat_gateway" "nat-gw" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public-subnet.id
+  depends_on    = [aws_internet_gateway.internet-gw]
+}
+
+resource "aws_route_table" "private-rt" {
+  vpc_id = aws_vpc.main.id
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat-gw.id
+  }
+}
+
+resource "aws_route_table_association" "private-rta" {
+  subnet_id      = aws_subnet.private-subnet.id
+  route_table_id = aws_route_table.private-rt.id
+}
+````
+A Nat Gateway enables instances in private subnets to connect to the internet. The Nat gateway must be deployed in the public subnet with an Elastic IP. Once the resource is created, a route table associated with the the private subnet needs to point internet-bound traffic to the NAT gateway.
+
+## Security Groups: 
+````
+resource "aws_security_group" "allow-ssh" {
+  vpc_id      = aws_vpc.main.id
+  name        = "allow-ssh"
+  description = "security group that allows ssh and all egress traffic"
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "allow-ssh"
+  }
+}
+````
+A security group acts as a virtual firewall for your instance to control incoming and outgoing traffic. The security group below enables all traffic over port 22 (SSH). Both instances in the private and public subnet require this security group.
+
+## Ec2 Instances and Keys: 
+````
+resource "aws_instance" "bastion-instance" {
+  ami           = var.instance-ami
+  instance_type = "t2.micro"
+
+  subnet_id = aws_subnet.public-subnet.id
+
+  vpc_security_group_ids = [aws_security_group.allow-ssh.id]
+
+  key_name = aws_key_pair.mykeypair.key_name
+
+  tags = {
+    Name = "bastion-instance"
+  }
+}
+
+resource "aws_instance" "private-instance" {
+  ami           = var.instance-ami
+  instance_type = "t2.micro"
+
+  subnet_id = aws_subnet.private-subnet.id
+
+  vpc_security_group_ids = [aws_security_group.allow-ssh.id]
+
+  key_name = aws_key_pair.mykeypair.key_name
+  
+  tags = {
+    Name = "private-instance"
+  }
+}
+
+resource "aws_key_pair" "mykeypair" {
+  key_name   = "mykeypair"
+  public_key = file(var.key_path)
+}
+````
+After all the necessary infrastructure has been defined, we can set up our Ec2 instances. The instances require an AWS key-pair to authenticate access which is created below using the aws_key_pair resource and existing ssh key created earlier.
 
 Now that the infrastructure is complete the next step is to deploy. This can be achieved with the following Terraform commands in the terraform directory:
 
