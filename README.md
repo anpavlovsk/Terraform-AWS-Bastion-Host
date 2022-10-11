@@ -18,7 +18,7 @@ ssh-keygen -f mykeypair
 ## Infrastructure
 The infrastructure below has been deployed using Terraform
 
-![alt text](https://github.com/anpavlovsk/Terraform-AWS-Bastion-Host/blob/main/screenshots/awsbastionhostssh.png?raw=true) 
+![alt text](https://github.com/anpavlovsk/Terraform-AWS-Bastion-Host/blob/main/screenshots/awsbastionhostsssh.png?raw=true) 
 
 ## VPC: 
 ````
